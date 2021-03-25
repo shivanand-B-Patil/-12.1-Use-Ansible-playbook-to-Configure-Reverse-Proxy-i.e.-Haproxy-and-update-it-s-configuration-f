@@ -1,0 +1,44 @@
+- hosts: hp
+  vars:
+  - port: 8080
+  become: yes
+  tasks:
+  - name: "installing haproxy"
+    package:
+            name: "haproxy"
+            state: present
+
+  - name: "copying config file"
+    template:
+            src: "haproxy.cfg"
+            dest: "/etc/haproxy/haproxy.cfg"
+
+  - name: "restarting service"
+    service:
+            name: "haproxy"
+            state: restarted
+
+- hosts: server
+  become: yes
+  tasks:
+  - name: "installing httpd"
+    package:
+            name: "httpd"
+            state: present
+
+  - name: "installing php"
+    package:
+            name: "php"
+            state: present
+
+  - name: "copying the php code"
+    copy:
+            src: "index.php"
+            dest: "/var/www/html/index.php"
+    notify: restart
+
+  handlers:
+  - name: restart
+    service:
+            name: "httpd"
+            state: restarted
